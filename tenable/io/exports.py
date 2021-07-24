@@ -189,6 +189,9 @@ class ExportsAPI(TIOEndpoint):
                 Informs the vuln export if it should include vulnerability data
                 from assets that are unlicensed.  This is generally required
                 when interacting with stale assets (>90 days).
+            indexed_at (int, optional):
+                Specifies the most recent time that vulnerabilities may have been
+                indexed.  Format is a unix timestamp integer.
             last_fixed (int, optional):
                 Specifies the earliest time that vulnerabilities may have been
                 fixed.  Format is a unix timestamp integer.
@@ -266,8 +269,8 @@ class ExportsAPI(TIOEndpoint):
         # these integer filters, lets instead just loop through all of them
         # instead.  As they all have the same logic, there isn't any reason
         # not to shorten up the madness.
-        for option in ['since', 'first_found', 'last_found',
-                       'last_fixed', 'first_scan_time',
+        for option in ['since', 'first_found', 'indexed_at',
+                       'last_found', 'last_fixed', 'first_scan_time',
                        'last_authenticated_scan_time', 'last_assessed']:
             self._api._log.debug(f'{option}={kw.get(option)}')
             if self._check(option, kw.get(option), int) is not None:
