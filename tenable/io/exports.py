@@ -185,6 +185,15 @@ class ExportsAPI(TIOEndpoint):
             first_found (int, optional):
                 Specifies the earliest time for a vulnerability to have been
                 discovered.  Format is a unix timestamp integer.
+            exports_iterator (callable, optional):
+                A caller specified iterator to use in place of `ExportsIterator`. It
+                can be a customized subclass of `ExportsIterator` or any callable. This
+                includes a named function or built-in, a lambda, class method or class
+                with the necessary methods implemented to behave like in iterable. This
+                can be used to let pyTenable handle the heavy lifting (packaging the POST
+                parameters up and making the POST as well as polling for chunk status) while
+                allowing the caller to do what they wish with the chunk URLS- like submit
+                them to a thread pool
             include_unlicensed (bool, optional):
                 Informs the vuln export if it should include vulnerability data
                 from assets that are unlicensed.  This is generally required
@@ -347,7 +356,12 @@ class ExportsAPI(TIOEndpoint):
                 'vulns/export', json=payload).json()['export_uuid']
             self._api._log.debug('Initiated vuln export {}'.format(uuid))
 
-        return ExportsIterator(self._api,
+        exports_iterator = kw.pop('exports_iterator', ExportsIterator)
+
+        if not callable(exports_iterator):
+            raise ValueError('exports_iterator is not callable')
+
+        return exports_iterator(self._api,
             type='vulns',
             uuid=uuid,
             timeout=self._check('timeout', kw.get('timeout'), int),
@@ -372,6 +386,15 @@ class ExportsAPI(TIOEndpoint):
                 Returns all assets terminated after the specified unix timestamp.
             deleted_at (int, optional):
                 Returns all assets deleted after the specified unix timestamp.
+            exports_iterator (callable, optional):
+                A caller specified iterator to use in place of `ExportsIterator`. It
+                can be a customized subclass of `ExportsIterator` or any callable. This
+                includes a named function or built-in, a lambda, class method or class
+                with the necessary methods implemented to behave like in iterable. This
+                can be used to let pyTenable handle the heavy lifting (packaging the POST
+                parameters up and making the POST as well as polling for chunk status) while
+                allowing the caller to do what they wish with the chunk URLS- like submit
+                them to a thread pool
             first_scan_time (int, optional):
                 Returns all assets first scanned after the specified unix
                 timestamp.
@@ -491,7 +514,13 @@ class ExportsAPI(TIOEndpoint):
             uuid = self._api.post(
                 'assets/export', json=payload).json()['export_uuid']
             self._api._log.debug('Initiated asset export {}'.format(uuid))
-        return ExportsIterator(
+
+        exports_iterator = kw.pop('exports_iterator', ExportsIterator)
+
+        if not callable(exports_iterator):
+            raise ValueError('exports_iterator is not a callable')
+
+        return exports_iterator(
             self._api,
             type='assets',
             uuid=uuid,
@@ -515,6 +544,15 @@ class ExportsAPI(TIOEndpoint):
             last_seen (int, optional):
                 Filters assets that were last seen by a scan between
                 the specified date (in Unix time) and now.
+            exports_iterator (callable, optional):
+                A caller specified iterator to use in place of `ExportsIterator`. It
+                can be a customized subclass of `ExportsIterator` or any callable. This
+                includes a named function or built-in, a lambda, class method or class
+                with the necessary methods implemented to behave like in iterable. This
+                can be used to let pyTenable handle the heavy lifting (packaging the POST
+                parameters up and making the POST as well as polling for chunk status) while
+                allowing the caller to do what they wish with the chunk URLS- like submit
+                them to a thread pool
             first_seen (int, optional):
                 Filters assets that were first seen by a scan between
                 the specified date (in Unix time) and now.
@@ -585,7 +623,12 @@ class ExportsAPI(TIOEndpoint):
                 'compliance/export', json=payload).json()['export_uuid']
             self._api._log.debug('Initiated compliance export {}'.format(uuid))
 
-        return ExportsIterator(
+        exports_iterator = kw.pop('exports_iterator', ExportsIterator)
+
+        if not callable(exports_iterator):
+            raise ValueError('exports_iterator is not callable')
+
+        return exports_iterator(
             self._api,
             type='compliance',
             uuid=uuid,
