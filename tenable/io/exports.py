@@ -356,7 +356,9 @@ class ExportsAPI(TIOEndpoint):
                 'vulns/export', json=payload).json()['export_uuid']
             self._api._log.debug('Initiated vuln export {}'.format(uuid))
 
-        exports_iterator = kw.pop('exports_iterator', ExportsIterator)
+        exports_iterator = kw.pop('exports_iterator', None)
+        if not exports_iterator:
+            exports_iterator = ExportsIterator
 
         if not callable(exports_iterator):
             raise ValueError('exports_iterator is not callable')
