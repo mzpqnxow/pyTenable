@@ -13,6 +13,7 @@ Methods available on ``tio.users``:
 '''
 from tenable.utils import dict_merge
 from tenable.io.base import TIOEndpoint
+import contextlib
 
 class UsersAPI(TIOEndpoint):
     '''
@@ -260,6 +261,7 @@ class UsersAPI(TIOEndpoint):
             self._check('user_id', user_id, int)), json={
                 'verification_code': self._check('code', code, str)})
 
+    @contextlib.contextmanager
     def impersonate(self, name):
         '''
         Impersonate as a specific user.
@@ -276,9 +278,17 @@ class UsersAPI(TIOEndpoint):
         Examples:
             >>> tio.users.impersonate('jdoe@company.com')
         '''
+        saved_impersonate_user = self._api._session.headers.get('X-Impersonate', None)
         self._api._session.headers.update({
             'X-Impersonate': 'username={}'.format(self._check('name', name, str))
         })
+        yield
+        if saved_impersonate_user:
+            self._api._session.headers.update({
+                'X-Impersonate': 'username={}'.format(saved_impersonate_user)
+            })
+        else:
+            del self._api._session.headers['X-Impersonate']
 
     def list(self):
         '''
